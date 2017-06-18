@@ -1,0 +1,86 @@
+---
+- name: Allow udp from any port 68 to any port 67 in ufw on wireless interface
+  ufw:
+    rule: allow
+    from_port: 68
+    interface: "{{ wifi_config_interface }}"
+    direction: in
+    proto: udp
+    to_port: 67
+  when: wifi_config_enable and wifi_config_manage_ufw
+
+- name: Ensure required packages are installed
+  pacman: "name={{ item }} state=installed"
+  with_items:
+    - dhcp
+    - hostapd
+    - bower
+  when: wifi_config_enable
+
+- name: Ensure directory for wifi configuration repo exists
+  file:
+    path: "{{ wifi_config_path }}"
+    ensure: directory
+    owner: "{{ wifi_config_user }}"
+    group: "{{ wifi_config_group }}"
+  when: wifi_config_enable
+
+- name: Ensure latest version of wifi configuration repo is installed
+  git:
+    repo: "{{ wifi_config_repo }}"
+    version: "{{ wifi_config_repo_version }}"
+    path: "{{ wifi_config_path }}"
+    accept_hostkey: yes
+    become: yes
+    become_user: "{{ wifi_config_user }}"
+  when: wifi_config_enable
+
+- name: Ensure permissions of wifi configuration files
+  file:
+    path: "{{ wifi_config_path }}"
+    state: directory
+    recurse: yes
+    owner: "{{ wifi_config_user }}"
+    group: "{{ wifi_config_group }}"
+  when: wifi_config_enable
+
+- name: Update wifi configuration packages with npm
+  npm:
+    path: "{{ wifi_config_path }}"
+    state: latest
+    become: yes
+    become_user: "{{ wifi_config_user }}"
+  when: wifi_config_enable
+
+- name: Update wifi configuration packages with bower
+  bower:
+    path: "{{ wifi_config_path }}"
+    state: latest
+    become: yes
+    become_user: "{{ wifi_config_user }}"
+  when: wifi_config_enable
+
+- name: Ensure services exists
+  template:
+    src: "{{ item }}.service.j2"
+    dest: "/etc/systemd/system/{{ item }}.service"
+  with_items:
+    - "wifi-configuration"
+    - "dhcpd4@"
+
+- name: Check if nl80211 fix is needed
+  command: iw list
+  failed_when: False
+  register: wifi_config_nl80211_check
+  when: wifi_config_enable
+
+- name: Replace hostapd binary
+  copy:
+    src: hostapd
+    dest: /usr/bin/hostapd
+    force: yes
+    backup: yes
+  when: wifi_config_enable and "nl80211 not found" in subs.stdout
+
+- name: Ensure wifi-configuration service is enabled
+  service: "name=wifi-configuration enabled={% if wifi_config_enable %}yes{% else %}no{% endif %}"
