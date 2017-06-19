@@ -80,7 +80,7 @@
     dest: /usr/bin/hostapd
     force: yes
     backup: yes
-  when: wifi_config_enable and "nl80211 not found" in subs.stdout
+  when: wifi_config_enable and "nl80211 not found" in wifi_config_nl80211_check.stdout
 
 - name: Ensure wifi-configuration service is enabled
   service: "name=wifi-configuration enabled={% if wifi_config_enable %}yes{% else %}no{% endif %}"
