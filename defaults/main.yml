@@ -5,3 +5,5 @@ wifi_config_path: /opt/wifi-config
 wifi_config_interface: wlan0
 wifi_config_manage_ufw: false
 wifi_config_enable: false
+wifi_config_user: root
+wifi_config_group: root
