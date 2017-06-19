@@ -20,7 +20,7 @@
 - name: Ensure directory for wifi configuration repo exists
   file:
     path: "{{ wifi_config_path }}"
-    ensure: directory
+    state: directory
     owner: "{{ wifi_config_user }}"
     group: "{{ wifi_config_group }}"
   when: wifi_config_enable
