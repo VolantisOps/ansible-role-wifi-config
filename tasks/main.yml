@@ -71,6 +71,7 @@
 - name: Check if nl80211 fix is needed
   command: iw list
   failed_when: False
+  changed_when: False
   register: wifi_config_nl80211_check
   when: wifi_config_enable
 
