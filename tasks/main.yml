@@ -29,7 +29,7 @@
   git:
     repo: "{{ wifi_config_repo }}"
     version: "{{ wifi_config_repo_version }}"
-    path: "{{ wifi_config_path }}"
+    dest: "{{ wifi_config_path }}"
     accept_hostkey: yes
   become: yes
   become_user: "{{ wifi_config_user }}"
